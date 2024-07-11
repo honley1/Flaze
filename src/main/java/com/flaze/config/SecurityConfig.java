@@ -42,10 +42,12 @@ public class SecurityConfig {
                 .csrf().disable()
                 .cors().disable()
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/secured").authenticated()
-                        .requestMatchers("/info").authenticated()
-                        .requestMatchers("/admin").hasRole("ADMIN")
-                        .anyRequest().permitAll()
+                    .requestMatchers("/api/v1/jwt/auth").permitAll() // Разрешаем доступ без аутентификации к эндпоинту аутентификации
+                    .requestMatchers("/api/v1/jwt/registration").permitAll() // Разрешаем доступ без аутентификации к эндпоинту регистрации
+                    .requestMatchers("/api/v1/**").authenticated() // Все остальные эндпоинты требуют аутентификации
+                    .requestMatchers("/api/v1/").authenticated()
+                    .requestMatchers("/admin").hasRole("ADMIN")
+                    .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

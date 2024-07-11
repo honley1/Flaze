@@ -85,6 +85,7 @@ public GetUserDTO getUser(String username) throws UserNotFoundException {
 
         for (UserEntity user: userEntities) {
             users.add(GetUserDTO.builder().
+                    id(user.getId()).
                     username(user.getUsername()).
                     age(user.getAge()).
                     email(user.getEmail()).

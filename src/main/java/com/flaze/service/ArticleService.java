@@ -69,14 +69,14 @@ public class ArticleService {
         return articles;
     }
 
-    public ArticleEntity addArticle(ArticleDTO article, Long authorId) throws ArticleAlreadyExistException, UserNotAuthorizedException {
+    public ArticleEntity addArticle(ArticleDTO article, Long id) throws ArticleAlreadyExistException, UserNotFoundException {
         if (articleRepository.existsByTitle(article.getTitle())) {
             throw new ArticleAlreadyExistException("Статья с таким заголовком уже существует");
         }
 
-        Optional<UserEntity> userEntityOptional = userRepository.findById(authorId);
+        Optional<UserEntity> userEntityOptional = userRepository.findById(id);
         if (userEntityOptional.isEmpty()) {
-            throw new UserNotAuthorizedException("Пользователь с id " + authorId + " не найден");
+            throw new UserNotFoundException("Пользователь с id " + id + " не найден");
         }
 
         UserEntity author = userEntityOptional.get();

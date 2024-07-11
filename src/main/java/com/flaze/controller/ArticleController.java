@@ -4,6 +4,7 @@ import com.flaze.DTO.ArticleDTO;
 import com.flaze.exception.ArticleAlreadyExistException;
 import com.flaze.exception.ArticleNotFoundException;
 import com.flaze.exception.UserNotAuthorizedException;
+import com.flaze.exception.UserNotFoundException;
 import com.flaze.response.Response;
 import com.flaze.service.ArticleService;
 import com.flaze.service.UserService;
@@ -11,7 +12,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+
 
 @Tag(name = "Article controllers")
 @RestController
@@ -38,11 +45,11 @@ public class ArticleController {
         } catch (ArticleAlreadyExistException e) {
             Response response = new Response("Статья с таким заголовком уже существует", 409);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        } catch (UserNotAuthorizedException e) {
-            Response response = new Response("Пользователь не авторизован", 401);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
+        } catch (UserNotFoundException e) {
+            Response response = new Response("Пользователь не найден", 404);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);        }
     }
+
 
     @GetMapping("/articles/{id}")
     public ResponseEntity getUserPage(@PathVariable Long id) {
