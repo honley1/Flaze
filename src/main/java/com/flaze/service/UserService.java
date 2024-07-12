@@ -55,7 +55,7 @@ public class UserService implements UserDetailsService {
                 build();
     }
 
-public GetUserDTO getUser(String username) throws UserNotFoundException {
+public GetUserDTO getUserByUsername(String username) throws UserNotFoundException {
     if (!(userRepository.existsByUsername(username))) {
         throw new UserNotFoundException("Пользователь с username-ом " + username + " не найден");
     }
@@ -67,6 +67,7 @@ public GetUserDTO getUser(String username) throws UserNotFoundException {
         List<GetArticleDTO> articles = articleService.getAllArticles(username);
 
         return GetUserDTO.builder()
+                .id(user.getId())
                 .username(user.getUsername())
                 .age(user.getAge())
                 .email(user.getEmail())

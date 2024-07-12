@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 
 @Tag(name = "User controllers")
 @RestController
@@ -28,23 +30,13 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/")
-    public ResponseEntity homePage() {
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(articleService.getAllArticles());
-        } catch (Exception e) {
-            Response response = new Response("Ошибка при получении списка статей", 500);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
     @GetMapping("/users/{username}")
     public ResponseEntity getUserPage(@PathVariable String username) {
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(username));
+            return ResponseEntity.status(HttpStatus.OK).body(userService.getUserByUsername(username));
         } catch (Exception e) {
-            Response response = new Response("Ошибка при получении пользователя", 500);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            Response response = new Response("Пользователь не найден", 404);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
@@ -58,16 +50,16 @@ public class UserController {
         }
     }
 
-    @PutMapping("/users/{id}")
-    public ResponseEntity updateUsernamePage(@PathVariable Long id,
-                                             @RequestParam String username) {
+    @PutMapping("/users")
+    public ResponseEntity updateUsernamePage(@PathVariable String newUsername, Principal auth) {
         try {
-            userService.updateUsername(id, username);
+            Long id = userService.getUserByUsername(auth.getName()).getId();
+            userService.updateUsername(id, newUsername);
             Response response = new Response("Username пользователя успешно обновлен", 200);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (UserNotFoundException e) {
-            Response response = new Response("Пользователь с id: " + id + " не найден", 404);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            Response response = new Response("Пользователь не авторизован", 401);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         } catch (UserAlreadyExistException e) {
             Response response = new Response("Пользователь под таким username-ом уже существует", 409);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);

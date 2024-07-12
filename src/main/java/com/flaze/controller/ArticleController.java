@@ -1,9 +1,9 @@
 package com.flaze.controller;
 
 import com.flaze.DTO.ArticleDTO;
+import com.flaze.DTO.GetUserDTO;
 import com.flaze.exception.ArticleAlreadyExistException;
 import com.flaze.exception.ArticleNotFoundException;
-import com.flaze.exception.UserNotAuthorizedException;
 import com.flaze.exception.UserNotFoundException;
 import com.flaze.response.Response;
 import com.flaze.service.ArticleService;
@@ -12,9 +12,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -36,20 +33,31 @@ public class ArticleController {
         this.userService = userService;
     }
 
-    @PostMapping("/articles/add")
-    public ResponseEntity addArticlePage(@RequestBody ArticleDTO articleDTO, @RequestParam Long userId) {
+    @GetMapping("/articles")
+    public ResponseEntity homePage() {
         try {
-            articleService.addArticle(articleDTO, userId);
-            Response response = new Response("Статься успешно создана", 201);
+            return ResponseEntity.status(HttpStatus.OK).body(articleService.getAllArticles());
+        } catch (Exception e) {
+            Response response = new Response("Ошибка при получении списка статей", 500);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/articles/add")
+    public ResponseEntity addArticlePage(@RequestBody ArticleDTO articleDTO, Principal auth) {
+        try {
+            GetUserDTO user = userService.getUserByUsername(auth.getName());
+            articleService.addArticle(articleDTO, user.getId());
+            Response response = new Response("Статья успешно создана", 201);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (ArticleAlreadyExistException e) {
             Response response = new Response("Статья с таким заголовком уже существует", 409);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         } catch (UserNotFoundException e) {
             Response response = new Response("Пользователь не найден", 404);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);        }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
-
 
     @GetMapping("/articles/{id}")
     public ResponseEntity getUserPage(@PathVariable Long id) {
